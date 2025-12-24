@@ -1,0 +1,105 @@
+﻿<Window x:Class="local_share.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:local_share"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="500" Width="900">
+    <Grid>
+        <!-- CHIA 2 CỘT -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="25*" />
+            <!-- 20% -->
+            <ColumnDefinition Width="75*" />
+            <!-- 80% -->
+        </Grid.ColumnDefinitions>
+
+        <!-- ========== CỘT TRÁI ========== -->
+        <Border Grid.Column="0" Padding="16" Background="#F5F5F5">
+            <StackPanel HorizontalAlignment="Center">
+
+                <!-- TÊN APP -->
+                <TextBlock Text="My Local Share"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Margin="0,0,0,16"
+                           HorizontalAlignment="Center"/>
+
+                <!-- QR CODE -->
+                <Image x:Name="QrImage"
+                       Width="180"
+                       Height="180"
+                       Margin="0,0,0,12"/>
+
+                <!-- URL -->
+                <TextBlock x:Name="TxtUrl"
+                           Text="http://localhost:5000"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           FontSize="12"
+                           Foreground="Gray"/>
+
+                <ListBox ItemsSource="{Binding OnlineUsers}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <Ellipse Width="10" Height="10"
+                                 Fill="Green"
+                                 Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding Name}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Border>
+
+        <!-- ========== CỘT PHẢI ========== -->
+        <Grid Grid.Column="1" Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <!-- HÀNG 1 -->
+                <RowDefinition Height="*" />
+                <!-- HÀNG 2 -->
+            </Grid.RowDefinitions>
+
+            <!-- HÀNG 1: CHỌN FILE -->
+            <StackPanel Grid.Row="0" Orientation="Vertical" Margin="0,0,0,12">
+                <Button Content="📁 Chọn file"
+                        Width="120"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,8"/>
+
+                <!-- DANH SÁCH FILE -->
+                <ListBox ItemsSource="{Binding Files}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding FileName}" />
+                                <TextBlock Text="{Binding Size}" FontSize="10" Foreground="Gray"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+
+            <!-- HÀNG 2: LƯU -->
+            <StackPanel Grid.Row="1" Orientation="Vertical">
+                <Button Content="💾 Lưu"
+                        Width="100"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,8"/>
+
+                <!-- ĐƯỜNG DẪN -->
+                <TextBlock Text="Đường dẫn lưu:"
+                           FontWeight="Bold"/>
+
+                <TextBlock x:Name="TxtSavePath"
+                           Text="C:\MyLocalShare"
+                           Foreground="Gray"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

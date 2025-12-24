@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Local Share</title>
+
+    <!-- SignalR -->
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: white;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: red; /* disconnected */
+        }
+
+            .status-dot.connected {
+                background: #2ecc71; /* connected */
+            }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="title">My Local-share</div>
+
+        <div class="status">
+            <span id="statusDot" class="status-dot"></span>
+            <span id="statusText">Disconnected</span>
+        </div>
+    </div>
+
+    <script>
+        function getDeviceName() {
+            const ua = navigator.userAgent;
+
+            let device = "Unknown";
+            if (/Android/i.test(ua)) device = "Android";
+            else if (/iPhone|iPad/i.test(ua)) device = "iOS";
+            else if (/Windows/i.test(ua)) device = "Windows";
+            else if (/Mac/i.test(ua)) device = "Mac";
+            else if (/Linux/i.test(ua)) device = "Linux";
+
+            let browser = "Browser";
+            if (/Edge/i.test(ua)) browser = "Edge";
+            else if (/Chrome/i.test(ua)) browser = "Chrome";
+            else if (/Firefox/i.test(ua)) browser = "Firefox";
+            else if (/Safari/i.test(ua)) browser = "Safari";
+
+            return `${device} - ${browser}`;
+        }
+
+        const statusDot = document.getElementById("statusDot");
+        const statusText = document.getElementById("statusText");
+
+        function setStatus(connected, message) {
+            statusDot.classList.toggle("connected", connected);
+            statusText.textContent = message;
+        }
+
+        // 🔹 Encode name để tránh lỗi URL
+        const deviceName = encodeURIComponent(getDeviceName());
+
+        // 🔹 Tạo SignalR connection
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`/hub/share?name=${deviceName}`)
+            .withAutomaticReconnect()
+            .build();
+
+        async function startConnection() {
+            try {
+                setStatus(false, "Connecting...");
+                await connection.start();
+
+                // Ping server
+                await connection.invoke("Alive");
+
+                setStatus(true, "Connected");
+                console.log("Connected as:", decodeURIComponent(deviceName));
+            }
+            catch (err) {
+                console.error(err);
+
+                let reason = "Cannot connect to server";
+                if (err.message?.includes("Failed to fetch"))
+                    reason = "Server not reachable";
+                else if (err.message?.includes("401"))
+                    reason = "Unauthorized";
+                else if (err.message?.includes("timeout"))
+                    reason = "Connection timeout";
+
+                setStatus(false, reason);
+            }
+        }
+
+        // 🔄 Reconnect events
+        connection.onreconnecting(() => {
+            setStatus(false, "Reconnecting...");
+        });
+
+        connection.onreconnected(() => {
+            setStatus(true, "Reconnected");
+        });
+
+        connection.onclose(() => {
+            setStatus(false, "Disconnected");
+        });
+
+        // 🚀 Start
+        startConnection();
+
+        connection.on("FilesUpdated", files => {
+        const list = document.getElementById("fileList");
+        list.innerHTML = "";
+
+        files.forEach(f => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    ${f.fileName}
+                    <button onclick="download('${f.id}')">⬇ Nhận dữ liệu</button>
+                `;
+                list.appendChild(li);
+            });
+        });
+
+        function download(id) {
+            window.location.href = `/api/files/${id}`;
+        }
+
+    </script>
+
+</body>
+</html>
